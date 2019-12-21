@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -44,6 +45,7 @@ public class DriveTrain extends Subsystem {
             motors[i] = opMode.hardwareMap.get(DcMotorEx.class, MOTOR_NAMES[i]);
             motors[i].setMode(STOP_AND_RESET_ENCODER);
             motors[i].setMode(RUN_USING_ENCODER);
+            motors[i].setDirection(i == 1 || i == 3 ? DcMotorEx.Direction.REVERSE : DcMotorEx.Direction.FORWARD);
         }
 
         //initialize IMU
