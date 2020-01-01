@@ -11,7 +11,7 @@ public class Constants {
 
     public static double INTAKE_SPEED = 1.0;
     public static double V_SLIDE_SPEED = 1.0;
-    public static double H_SLIDE_SPEED = 1.0;
+    public static double H_SLIDE_INCREMENT = 0.01;
 
     public static PIDFCoefficients DRIVE_PID_COEFFICIENTS = new PIDFCoefficients(0.15, 0.0, 0.05);
     public static PIDFCoefficients STRAFE_PID_COEFFICIENTS = new PIDFCoefficients(0.1, 0.0, 0.05);

@@ -37,7 +37,7 @@ public class DriveTrain extends Subsystem {
     //----------------------------------------------------------------------------------------------
 
     public DriveTrain(LinearOpMode opMode, boolean autonomous) {
-        super(opMode, MOTOR_NAMES, autonomous);
+        super(opMode, MOTOR_NAMES, null, autonomous);
 
         //configure motors
         motors = new DcMotorEx[MOTOR_NAMES.length];

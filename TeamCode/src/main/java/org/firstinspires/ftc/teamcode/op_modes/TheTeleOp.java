@@ -42,24 +42,22 @@ public class TheTeleOp extends LinearOpMode {
             else
                 robot.driveTrain.driveFieldCentric(gamepad1.left_stick_x, gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-            if(stickyGamepad1.y)
-                robot.intake.incrementState();
+//            if(stickyGamepad1.y)
+//                robot.intake.incrementState();
             if(stickyGamepad1.b)
                 isRobotCentric = !isRobotCentric;
 
             if(stickyGamepad1.right_bumper)
-                robot.linearSlide.motors[1].setPower(V_SLIDE_SPEED);
+                robot.linearSlide.motors[0].setPower(V_SLIDE_SPEED);
             else if(stickyGamepad1.left_bumper)
-                robot.linearSlide.motors[1].setPower(-V_SLIDE_SPEED);
-            else
-                robot.linearSlide.motors[1].setPower(0);
-
-            if(stickyGamepad1.right_trigger)
-                robot.linearSlide.motors[0].setPower(H_SLIDE_SPEED);
-            else if(stickyGamepad1.left_trigger)
-                robot.linearSlide.motors[0].setPower(-H_SLIDE_SPEED);
+                robot.linearSlide.motors[0].setPower(-V_SLIDE_SPEED);
             else
                 robot.linearSlide.motors[0].setPower(0);
+
+            if(stickyGamepad1.right_trigger)
+                robot.linearSlide.hSlide.setPosition(robot.linearSlide.hSlide.getPosition() + H_SLIDE_INCREMENT);
+            else if(stickyGamepad1.left_trigger)
+                robot.linearSlide.hSlide.setPosition(robot.linearSlide.hSlide.getPosition() - H_SLIDE_INCREMENT);
 
             if(gamepad1.guide)
                 isStopped = true;

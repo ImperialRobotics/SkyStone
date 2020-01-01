@@ -22,7 +22,7 @@ public class Intake extends Subsystem {
     //----------------------------------------------------------------------------------------------
 
     public Intake(LinearOpMode opMode, boolean autonomous) {
-        super(opMode, MOTOR_NAMES, autonomous);
+        super(opMode, MOTOR_NAMES, null, autonomous);
 
         //configure motors
         motors = new DcMotorEx[MOTOR_NAMES.length];
