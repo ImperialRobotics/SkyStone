@@ -12,7 +12,7 @@ import java.util.Map;
 public class Robot {
     public List<Subsystem> subsystems;
     public DriveTrain driveTrain;
-    public Intake intake;
+//    public Intake intake;
     public LinearSlide linearSlide;
 
     private Intake.IntakeState intakeState;
@@ -27,9 +27,9 @@ public class Robot {
 
         //initialize subsystems
         driveTrain = new DriveTrain(opMode, autonomous);
-        intake = new Intake(opMode, autonomous);
+//        intake = new Intake(opMode, autonomous);
         linearSlide = new LinearSlide(opMode, autonomous);
-        subsystems = Arrays.asList(driveTrain, intake);
+        subsystems = Arrays.asList(driveTrain, linearSlide);
 
         intakeState = Intake.IntakeState.INTAKE;
     }

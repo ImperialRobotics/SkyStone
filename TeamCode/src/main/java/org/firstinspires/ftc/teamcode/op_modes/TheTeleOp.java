@@ -1,16 +1,10 @@
 package org.firstinspires.ftc.teamcode.op_modes;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
 import org.firstinspires.ftc.teamcode.util.StickyGamepad;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import static org.firstinspires.ftc.teamcode.util.Constants.*;
+
 
 /** Controls:
  * left_stick_x - horizontal movement
@@ -18,10 +12,10 @@ import java.util.Map;
  * right_stick_x - rotate
  *
  *  y - increment state of intake (INTAKE, SPIT, DISABLED)
- *  right_bumper - increment index of the vertical linear slide preset
- *  left_bumper - decrement index of the vertical linear slide preset
- *  right_trigger - increment index of the horizontal linear slide preset
- *  left_trigger - decrement index of the horizontal linear slide preset
+ *  right_bumper - extend vertical linear slide
+ *  left_bumper - retract vertical linear slide
+ *  right_trigger - extend horizontal linear slide
+ *  left_trigger - retract horizontal linear slide
  *
  *  b - toggle robot centric
  */
@@ -54,19 +48,23 @@ public class TheTeleOp extends LinearOpMode {
                 isRobotCentric = !isRobotCentric;
 
             if(stickyGamepad1.right_bumper)
-                robot.linearSlide.changeVerticalPreset(true);
+                robot.linearSlide.motors[1].setPower(V_SLIDE_SPEED);
             else if(stickyGamepad1.left_bumper)
-                robot.linearSlide.changeVerticalPreset(false);
+                robot.linearSlide.motors[1].setPower(-V_SLIDE_SPEED);
+            else
+                robot.linearSlide.motors[1].setPower(0);
 
             if(stickyGamepad1.right_trigger)
-                robot.linearSlide.changeHorizontalPreset(true);
+                robot.linearSlide.motors[0].setPower(H_SLIDE_SPEED);
             else if(stickyGamepad1.left_trigger)
-                robot.linearSlide.changeHorizontalPreset(false);
+                robot.linearSlide.motors[0].setPower(-H_SLIDE_SPEED);
+            else
+                robot.linearSlide.motors[0].setPower(0);
 
             if(gamepad1.guide)
                 isStopped = true;
 
-            robot.intake.handleState();
+//            robot.intake.handleState();
             robot.updateTelemetry();
             stickyGamepad1.update();
         }
