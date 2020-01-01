@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.util;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import static org.firstinspires.ftc.teamcode.util.Constants.*;
+
 public class StickyGamepad {
 
     private Gamepad gamepad;
@@ -9,11 +11,13 @@ public class StickyGamepad {
     public boolean dpad_up, dpad_down, dpad_left, dpad_right;
     public boolean a, b, x, y;
     public boolean left_bumper, right_bumper;
+    public boolean left_trigger, right_trigger;
     public boolean left_stick_button, right_stick_button;
 
     private boolean dpad_up_down, dpad_down_down, dpad_left_down, dpad_right_down;
     private boolean a_down, b_down, x_down, y_down;
     private boolean left_bumper_down, right_bumper_down;
+    private boolean left_trigger_down, right_trigger_down;
     private boolean left_stick_button_down, right_stick_button_down;
 
     public StickyGamepad(Gamepad gamepad) {
@@ -139,6 +143,30 @@ public class StickyGamepad {
         } else {
             right_bumper = false;
             right_bumper_down = false;
+        }
+
+        if (MathUtil.deadZone(gamepad.left_trigger, TRIGGER_DEADZONE) > 0) {
+            if (left_trigger_down) {
+                left_trigger = false;
+            } else {
+                left_trigger_down = true;
+                left_trigger = true;
+            }
+        } else {
+            left_trigger = false;
+            left_trigger_down = false;
+        }
+
+        if (MathUtil.deadZone(gamepad.right_trigger, TRIGGER_DEADZONE) > 0) {
+            if (right_trigger_down) {
+                right_trigger = false;
+            } else {
+                right_trigger_down = true;
+                right_trigger = true;
+            }
+        } else {
+            right_trigger = false;
+            right_trigger_down = false;
         }
 
         if (gamepad.left_stick_button) {
