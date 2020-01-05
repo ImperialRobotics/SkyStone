@@ -1,27 +1,31 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.*;
+import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.*;
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.*;
 import static org.firstinspires.ftc.teamcode.util.Constants.*;
 
 public class LinearSlide extends Subsystem {
 
     private static final String[] MOTOR_NAMES = {"v_slide"};
-    private static final String[] SERVO_NAMES = {"h_slide"};
+    private static final String[] SERVO_NAMES = {"gripper"};
+    private static final String H_SLIDE_NAME = "h_slide";
+
+    public CRServo hSlide;
 
     //presets
     private static final int[] PRESETS = {100, 200, 300, 400, 500};
     private int presetIndex;
-
-    public Servo hSlide;
 
     //----------------------------------------------------------------------------------------------
     // Constructor
@@ -34,14 +38,18 @@ public class LinearSlide extends Subsystem {
         motors = new DcMotorEx[MOTOR_NAMES.length];
         for (int i = 0; i < MOTOR_NAMES.length; i++) {
             motors[i] = opMode.hardwareMap.get(DcMotorEx.class, MOTOR_NAMES[i]);
+            motors[i].setDirection(REVERSE);
             motors[i].setMode(STOP_AND_RESET_ENCODER);
             motors[i].setMode(RUN_USING_ENCODER);
             motors[i].setZeroPowerBehavior(BRAKE);
         }
 
         //configure servos
+        servos = new Servo[SERVO_NAMES.length];
         for(int i = 0; i < SERVO_NAMES.length; i++)
             servos[i] = opMode.hardwareMap.get(Servo.class, SERVO_NAMES[i]);
+
+        hSlide = opMode.hardwareMap.get(CRServo.class, H_SLIDE_NAME);
 
         //configure preset indices
         presetIndex = -1;
@@ -74,7 +82,11 @@ public class LinearSlide extends Subsystem {
             telemetryData.put(MOTOR_NAMES[i] + " encoder counts", motors[i].getCurrentPosition());
             telemetryData.put(MOTOR_NAMES[i] + " power", motors[i].getPower());
         }
-        telemetryData.put("Vertical preset", PRESETS[presetIndex % PRESETS.length]);
+        for(int i = 0; i < servos.length; i++)
+            telemetryData.put(SERVO_NAMES[i] + " position", servos[i].getPosition());
+
+        telemetryData.put("h_slide power", hSlide.getPower());
+//        telemetryData.put("Vertical preset", PRESETS[presetIndex % PRESETS.length]);
         return telemetryData;
     }
 }

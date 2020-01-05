@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class Hook extends Subsystem {
 
-    public static final String[] SERVO_NAMES = {"l_hook, r_hook"};
+    public static final String[] SERVO_NAMES = { "hook" };
 
     public Hook(LinearOpMode opMode, boolean autonomous) {
         super(opMode, null, SERVO_NAMES, autonomous);
@@ -19,12 +19,10 @@ public class Hook extends Subsystem {
 
     public void deploy() {
         servos[0].setPosition(1.0);
-        servos[1].setPosition(1.0);
     }
 
     public void retract() {
         servos[0].setPosition(0.0);
-        servos[1].setPosition(0.0);
     }
 
     @Override

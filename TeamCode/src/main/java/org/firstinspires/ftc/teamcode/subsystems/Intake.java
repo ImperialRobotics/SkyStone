@@ -43,7 +43,7 @@ public class Intake extends Subsystem {
         Map<String, Object> telemetryData = new HashMap<>();
 
         for(int i = 0; i < motors.length; i++) {
-            telemetryData.put(MOTOR_NAMES[i] + " encoder counts", motors[i].getCurrentPosition());
+            telemetryData.put(MOTOR_NAMES[i] + " encoder position", motors[i].getCurrentPosition());
             telemetryData.put(MOTOR_NAMES[i] + " power", motors[i].getPower());
         }
         telemetryData.put("intake state", state);
@@ -81,6 +81,6 @@ public class Intake extends Subsystem {
     }
 
     public enum IntakeState {
-        INTAKE, SPIT, DISABLED;
+        INTAKE, SPIT, DISABLED
     }
 }

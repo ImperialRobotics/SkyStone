@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -12,9 +14,12 @@ import java.util.Map;
 public class Robot {
     public List<Subsystem> subsystems;
     public DriveTrain driveTrain;
-//    public Intake intake;
+    public Intake intake;
     public LinearSlide linearSlide;
+    public Hook hook;
+    public FtcDashboard dashboard;
 
+    private boolean usingDashboard;
     private Intake.IntakeState intakeState;
     private OpMode opMode;
 
@@ -22,16 +27,21 @@ public class Robot {
     // Constructor
     //----------------------------------------------------------------------------------------------
 
-    public Robot(LinearOpMode opMode, boolean autonomous) {
+    public Robot(LinearOpMode opMode, boolean autonomous, boolean usingDashboard) {
         this.opMode = opMode;
 
         //initialize subsystems
         driveTrain = new DriveTrain(opMode, autonomous);
-//        intake = new Intake(opMode, autonomous);
+        intake = new Intake(opMode, autonomous);
         linearSlide = new LinearSlide(opMode, autonomous);
-        subsystems = Arrays.asList(driveTrain, linearSlide);
+        hook = new Hook(opMode, autonomous);
+        subsystems = Arrays.asList(driveTrain, intake, linearSlide, hook);
 
         intakeState = Intake.IntakeState.INTAKE;
+
+        this.usingDashboard = usingDashboard;
+        if(usingDashboard)
+            this.dashboard = FtcDashboard.getInstance();
     }
 
     //----------------------------------------------------------------------------------------------
@@ -39,10 +49,17 @@ public class Robot {
     //----------------------------------------------------------------------------------------------
 
     public void updateTelemetry() {
-        for(Subsystem subsystem: subsystems)
-            for(Map.Entry<String, Object> entry: subsystem.updateTelemetry().entrySet())
+        TelemetryPacket packet = new TelemetryPacket();
+        for(Subsystem subsystem: subsystems) {
+            for (Map.Entry<String, Object> entry : subsystem.updateTelemetry().entrySet()) {
                 opMode.telemetry.addData(entry.getKey(), entry.getValue());
+                packet.put(entry.getKey(), entry.getValue());
+            }
             opMode.telemetry.addLine();
-            opMode.telemetry.update();
+            packet.addLine("");
+        }
+        opMode.telemetry.update();
+        if(usingDashboard)
+            dashboard.sendTelemetryPacket(packet);
     }
 }
