@@ -14,7 +14,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.*;
 import static org.firstinspires.ftc.teamcode.util.Constants.*;
 
 public class Intake extends Subsystem {
-    private static final String[] MOTOR_NAMES = {"right_intake", "left_intake"};
+    private static final String[] MOTOR_NAMES = {"r_intake", "l_intake"};
     IntakeState state;
 
     //----------------------------------------------------------------------------------------------
