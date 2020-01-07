@@ -51,39 +51,39 @@ public class TheTeleOp extends LinearOpMode {
             else
                 robot.driveTrain.driveFieldCentric(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-            if(stickyGamepad1.y)
-                robot.intake.incrementState();
+//            if(stickyGamepad1.y)
+//                robot.intake.incrementState();
             if(stickyGamepad1.a)
                 isRobotCentric = !isRobotCentric;
 
             if(gamepad1.right_bumper && robot.linearSlide.motors[0].getCurrentPosition() <= V_SLIDE_MAX_TICKS)
                 robot.linearSlide.motors[0].setPower(V_SLIDE_SPEED);
-            else if(gamepad1.left_bumper && robot.linearSlide.motors[0].getCurrentPosition() <= V_SLIDE_MAX_TICKS)
+            else if(gamepad1.left_bumper)
                 robot.linearSlide.motors[0].setPower(-V_SLIDE_SPEED);
             else
                 robot.linearSlide.motors[0].setPower(0);
 
             if(MathUtil.deadZone(gamepad1.right_trigger, TRIGGER_DEADZONE) > 0)
-                robot.linearSlide.hSlide.setPower(1.0);
+                robot.linearSlide.motors[1].setPower(H_SLIDE_SPEED);
             else if(MathUtil.deadZone(gamepad1.left_trigger, TRIGGER_DEADZONE) > 0)
-                robot.linearSlide.hSlide.setPower(-1.0);
+                robot.linearSlide.motors[1].setPower(-H_SLIDE_SPEED);
             else
-                robot.linearSlide.hSlide.setPower(0.0);
+                robot.linearSlide.motors[1].setPower(0.0);
 
             if(gamepad1.b)
-                robot.linearSlide.servos[1].setPosition(robot.linearSlide.servos[1].getPosition() + GRIPPER_INCREMENT);
+                robot.linearSlide.servos[0].setPosition(robot.linearSlide.servos[0].getPosition() + GRIPPER_INCREMENT);
             else if(gamepad1.x)
-                robot.linearSlide.servos[1].setPosition(robot.linearSlide.servos[1].getPosition() - GRIPPER_INCREMENT);
+                robot.linearSlide.servos[0].setPosition(robot.linearSlide.servos[0].getPosition() - GRIPPER_INCREMENT);
 
-            if(gamepad1.dpad_up)
-                robot.hook.servos[0].setPosition(robot.hook.servos[0].getPosition() - HOOK_INCREMENT);
-            else if(gamepad1.dpad_down)
-                robot.hook.servos[0].setPosition(robot.hook.servos[0].getPosition() + HOOK_INCREMENT);
+//            if(gamepad1.dpad_up)
+//                robot.hook.servos[0].setPosition(robot.hook.servos[0].getPosition() - HOOK_INCREMENT);
+//            else if(gamepad1.dpad_down)
+//                robot.hook.servos[0].setPosition(robot.hook.servos[0].getPosition() + HOOK_INCREMENT);
 
             if(gamepad1.guide)
                 isStopped = true;
 
-            robot.intake.handleState();
+//            robot.intake.handleState();
             robot.updateTelemetry();
             stickyGamepad1.update();
         }

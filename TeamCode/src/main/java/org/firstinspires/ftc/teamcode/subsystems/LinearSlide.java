@@ -17,11 +17,8 @@ import static org.firstinspires.ftc.teamcode.util.Constants.*;
 
 public class LinearSlide extends Subsystem {
 
-    private static final String[] MOTOR_NAMES = {"v_slide"};
+    private static final String[] MOTOR_NAMES = {"v_slide", "h_slide"};
     private static final String[] SERVO_NAMES = {"gripper"};
-    private static final String H_SLIDE_NAME = "h_slide";
-
-    public CRServo hSlide;
 
     //presets
     private static final int[] PRESETS = {100, 200, 300, 400, 500};
@@ -38,9 +35,10 @@ public class LinearSlide extends Subsystem {
         motors = new DcMotorEx[MOTOR_NAMES.length];
         for (int i = 0; i < MOTOR_NAMES.length; i++) {
             motors[i] = opMode.hardwareMap.get(DcMotorEx.class, MOTOR_NAMES[i]);
-            motors[i].setDirection(REVERSE);
-            motors[i].setMode(STOP_AND_RESET_ENCODER);
-            motors[i].setMode(RUN_USING_ENCODER);
+            motors[i].setDirection(i == 0 ? REVERSE: FORWARD);
+            if(i == 0)
+                motors[i].setMode(STOP_AND_RESET_ENCODER);
+            motors[i].setMode(i == 0 ? RUN_USING_ENCODER : RUN_WITHOUT_ENCODER);
             motors[i].setZeroPowerBehavior(BRAKE);
         }
 
@@ -48,8 +46,6 @@ public class LinearSlide extends Subsystem {
         servos = new Servo[SERVO_NAMES.length];
         for(int i = 0; i < SERVO_NAMES.length; i++)
             servos[i] = opMode.hardwareMap.get(Servo.class, SERVO_NAMES[i]);
-
-        hSlide = opMode.hardwareMap.get(CRServo.class, H_SLIDE_NAME);
 
         //configure preset indices
         presetIndex = -1;
@@ -85,7 +81,6 @@ public class LinearSlide extends Subsystem {
         for(int i = 0; i < servos.length; i++)
             telemetryData.put(SERVO_NAMES[i] + " position", servos[i].getPosition());
 
-        telemetryData.put("h_slide power", hSlide.getPower());
 //        telemetryData.put("Vertical preset", PRESETS[presetIndex % PRESETS.length]);
         return telemetryData;
     }

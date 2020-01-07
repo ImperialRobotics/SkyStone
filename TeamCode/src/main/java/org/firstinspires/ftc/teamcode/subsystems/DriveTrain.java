@@ -49,30 +49,28 @@ public class DriveTrain extends Subsystem {
             motors[i].setDirection(i == 1 || i == 3 ? DcMotorEx.Direction.REVERSE : DcMotorEx.Direction.FORWARD);
         }
 
-        if(autonomous) {
-            //initialize IMU
-            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-            parameters.mode = BNO055IMU.SensorMode.IMU;
-            parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-            parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-            parameters.loggingEnabled = false;
-            parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        //initialize IMU
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = false;
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
-            imu = opMode.hardwareMap.get(BNO055IMU.class, "imu");
-            imu.initialize(parameters);
+        imu = opMode.hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
 
 
-            opMode.telemetry.addData("Status", "calibrating imu");
-            opMode.telemetry.update();
+        opMode.telemetry.addData("Status", "calibrating imu");
+        opMode.telemetry.update();
 
-            while (!opMode.isStopRequested() && !imu.isGyroCalibrated()) {
-                opMode.sleep(50);
-                opMode.idle();
-            }
-
-            opMode.telemetry.addData("Status", "calibrated imu");
-            opMode.telemetry.update();
+        while (!opMode.isStopRequested() && !imu.isGyroCalibrated()) {
+            opMode.sleep(50);
+            opMode.idle();
         }
+
+        opMode.telemetry.addData("Status", "calibrated imu");
+        opMode.telemetry.update();
 
         //initialize PIDControllers
         pidDrive = new PIDFController(DRIVE_PID_COEFFICIENTS);
@@ -89,7 +87,13 @@ public class DriveTrain extends Subsystem {
         double br = y + x - rot;
         double bl = y - x + rot;
         double max = MathUtil.max(fr, fl, br, bl);
-        setPowers(fr / max, fl / max, br / max, bl / max);
+        if(max >= 1.0) {
+            fr /= max;
+            fl /= max;
+            br /= max;
+            bl /= max;
+        }
+        setPowers(fr, fl, br, bl);
     }
 
     /**
@@ -107,7 +111,7 @@ public class DriveTrain extends Subsystem {
         rot = Range.clip(rot, -1, 1);
 
         Vector2d input = new Vector2d(x, y);
-        input = input.rotateBy(-rot);
+        input = input.rotateBy(-getAngle());
 
         double theta = input.angle();
         double magnitude = input.magnitude();
@@ -185,6 +189,7 @@ public class DriveTrain extends Subsystem {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         double deltaAngle = MathUtil.wrapAngle(angles.firstAngle - lastAngles.firstAngle);
+        globalAngle += deltaAngle;
         lastAngles = angles;
         return globalAngle;
     }
@@ -215,8 +220,7 @@ public class DriveTrain extends Subsystem {
 
         long startTime = System.currentTimeMillis();
         while(opMode.opModeIsActive() && isBusy() && System.currentTimeMillis() - startTime < AUTONOMOUS_DRIVE_TIMEOUT) {
-            opMode.telemetry.addData("heading", Math.toDegrees(globalAngle));
-            opMode.telemetry.addData("ticks traveled", "left: %d, right: %d", motors[0].getCurrentPosition(), motors[1].getCurrentPosition());
+            opMode.telemetry.addData("heading", Math.toDegrees(getAngle()));
             opMode.telemetry.update();
         }
         setPower(0);
@@ -246,8 +250,7 @@ public class DriveTrain extends Subsystem {
 
         long startTime = System.currentTimeMillis();
         while(opMode.opModeIsActive() && motors[2].isBusy() && System.currentTimeMillis() - startTime < AUTONOMOUS_STRAFE_TIMEOUT) {
-            opMode.telemetry.addData("heading", Math.toDegrees(globalAngle));
-            opMode.telemetry.addData("ticks traveled", "strafe: %d", motors[2].getCurrentPosition());
+            opMode.telemetry.addData("heading", Math.toDegrees(getAngle()));
             opMode.telemetry.update();
         }
         motors[2].setPower(0);
@@ -264,7 +267,6 @@ public class DriveTrain extends Subsystem {
      * @param radians negative when rotating clockwise, positive when rotating counterclockwise
      */
     public void rotate(double radians) {
-        double  leftPower, rightPower;
         resetAngle();
 
         opMode.telemetry.addData("Rotating", "degrees: " + Math.toDegrees(radians));
@@ -358,69 +360,11 @@ public class DriveTrain extends Subsystem {
             opMode.telemetry.update();
         }
 
-        motors[0].setPower(0);
-        motors[1].setPower(0);
-        motors[0].setMode(RUN_USING_ENCODER);
-        motors[1].setMode(RUN_USING_ENCODER);
+        setPower(0);
+        setMode(RUN_USING_ENCODER);
 
         opMode.telemetry.addData("Finished Driving PID", "ticks: " + ticks);
         opMode.telemetry.update();
-
-        opMode.sleep(SLEEP_TIME);
-    }
-
-    /**
-     * strafes a given number of inches, keeping a constant heading through use of a PID
-     * controller
-     * @param inches positive when strafing right, negative when strafing left
-     */
-    public void strafePID(double inches) {
-        int ticks = MathUtil.ticks(inches);
-
-        opMode.telemetry.addData("Strafing PID", "ticks: " + ticks);
-        opMode.telemetry.update();
-
-        int target = motors[2].getCurrentPosition() + ticks;
-
-        motors[2].setTargetPosition(target);
-        motors[2].setMode(RUN_TO_POSITION);
-
-        resetAngle();
-
-        pidStrafe.reset();
-        pidStrafe.setSetpoint(0);
-        pidStrafe.setOutputRange(-1.0, 1.0);
-
-        long startTime = System.currentTimeMillis();
-
-        while(opMode.opModeIsActive() && motors[0].isBusy() && motors[1].isBusy() && System.currentTimeMillis() - startTime < AUTONOMOUS_STRAFE_TIMEOUT) {
-            double steer = pidStrafe.update(getAngle(), imu.getVelocity().zVeloc, imu.getAcceleration().zAccel);
-
-            // if driving in reverse, the motor correction also needs to be reversed
-            if(inches < 0)
-                steer *= -1.0;
-
-            motors[0].setPower(steer);
-            motors[1].setPower(-steer);
-            motors[2].setPower(STRAFE_SPEED);
-
-            opMode.telemetry.addData("heading", globalAngle);
-            opMode.telemetry.addData("ticks traveled", "left: %d, right: %d, strafe: %d", motors[0].getCurrentPosition(), motors[1].getCurrentPosition(), motors[2].getCurrentPosition());
-            opMode.telemetry.update();
-        }
-
-        motors[0].setPower(0);
-        motors[1].setPower(0);
-        motors[2].setPower(0);
-
-        motors[0].setMode(RUN_USING_ENCODER);
-        motors[1].setMode(RUN_USING_ENCODER);
-        motors[2].setMode(RUN_USING_ENCODER);
-
-
-        opMode.telemetry.addData("Finished Strafing PID", "ticks: " + ticks);
-        opMode.telemetry.update();
-
 
         opMode.sleep(SLEEP_TIME);
     }
@@ -444,33 +388,32 @@ public class DriveTrain extends Subsystem {
 
     /**
      * rotates a given number of degrees, doing so by use of a PID controller
-     * @param radians negative when rotating clockwise, positive when rotating counterclockwise
+     * @param degrees negative when rotating clockwise, positive when rotating counterclockwise
      */
-    public void rotatePID(double radians) {
+    public void rotatePID(double degrees) {
 
-        opMode.telemetry.addData("Rotating PID", "degrees: " + Math.toDegrees(radians));
+        opMode.telemetry.addData("Rotating PID", "degrees: " + degrees);
         opMode.telemetry.update();
 
 
         resetAngle();
-        if (Math.abs(radians) > 2 * Math.PI)
-            radians = (int) Math.copySign(2 * Math.PI, radians);
+        if (Math.abs(degrees) > 360)
+            degrees = (int) Math.copySign(360, degrees);
 
         pidRotate.reset();
-        pidRotate.setSetpoint(radians);
-        pidRotate.setInputRange(0, radians);
+        pidRotate.setSetpoint(degrees);
+        pidRotate.setInputRange(0, degrees);
         pidRotate.setOutputRange(0, ROTATE_SPEED);
         pidRotate.setTolerance(.01);
 
         double startTime = System.currentTimeMillis();
 
         while(opMode.opModeIsActive() && !onHeading() && System.currentTimeMillis() - startTime < AUTONOMOUS_ROTATE_TIMEOUT) {
-            opMode.telemetry.addData("Heading", globalAngle);
-            opMode.telemetry.addData("ticks traveled", "left: %d, right: %d", motors[0].getCurrentPosition(), motors[1].getCurrentPosition());
+            opMode.telemetry.addData("Heading", getAngle());
             opMode.telemetry.update();
         }
 
-        opMode.telemetry.addData("Finished Rotating PID", "degrees: " + Math.toDegrees(radians));
+        opMode.telemetry.addData("Finished Rotating PID", "degrees: " + degrees);
         opMode.telemetry.update();
 
         opMode.sleep(SLEEP_TIME);

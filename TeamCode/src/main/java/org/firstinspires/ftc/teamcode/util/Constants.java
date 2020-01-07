@@ -13,7 +13,7 @@ public class Constants {
 
     public static double INTAKE_SPEED = 1.0;
     public static double V_SLIDE_SPEED = 1.0;
-    public static double H_SLIDE_INCREMENT = 0.01;
+    public static double H_SLIDE_SPEED = 0.5;
     public static double GRIPPER_INCREMENT = 0.01;
     public static double HOOK_INCREMENT = 0.01;
 
@@ -50,7 +50,7 @@ public class Constants {
 
     public static double WHEEL_DIAMETER = 3.543;
     public static double TICKS_PER_REVOLUTION = MotorConfigurationType.getMotorType(NeveRest40Gearmotor.class).getTicksPerRev();
-    public static double GEAR_RATIO = 0.4;
+    public static double GEAR_RATIO = 1.0;
     public static double TICKS_PER_INCH = (TICKS_PER_REVOLUTION * GEAR_RATIO) / (WHEEL_DIAMETER * Math.PI);
 
     //----------------------------------------------------------------------------------------------
