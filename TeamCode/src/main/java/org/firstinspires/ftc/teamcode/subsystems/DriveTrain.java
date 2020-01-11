@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.util.MathUtil;
 import org.firstinspires.ftc.teamcode.util.PIDFController;
+import org.firstinspires.ftc.teamcode.util.Smoother;
 import org.firstinspires.ftc.teamcode.util.Vector2d;
 
 import java.util.HashMap;
@@ -32,6 +33,9 @@ public class DriveTrain extends Subsystem {
 
     //pid controllers
     private PIDFController pidDrive, pidStrafe, pidRotate;
+
+    //smoothers
+    private Smoother[] smoothers;
 
     //----------------------------------------------------------------------------------------------
     // Constructor
@@ -77,15 +81,22 @@ public class DriveTrain extends Subsystem {
         pidStrafe = new PIDFController(STRAFE_PID_COEFFICIENTS);
         pidRotate = new PIDFController(ROTATE_PID_COEFFICIENTS);
 
+        //initialize smoothers
+        smoothers = new Smoother[4];
+        for(int i = 0; i < smoothers.length; i++)
+            smoothers[i] = new Smoother(SMOOTHING_FACTOR);
+
+
         opMode.telemetry.addData("Status", "DriveTrain instantiated");
         opMode.telemetry.update();
     }
 
-    public void driveRobotCentric(double x, double y, double rot) {
+    public void driveRobotCentric(double x, double y, double rot, boolean isSmoothed, double scaling) {
         double fr = y - x - rot;
-        double fl = y + x + rot;
+        double fl = y - x + rot;
         double br = y + x - rot;
         double bl = y - x + rot;
+
         double max = MathUtil.max(fr, fl, br, bl);
         if(max >= 1.0) {
             fr /= max;
@@ -93,7 +104,16 @@ public class DriveTrain extends Subsystem {
             br /= max;
             bl /= max;
         }
-        setPowers(fr, fl, br, bl);
+
+        fr *= scaling;
+        fl *= scaling;
+        br *= scaling;
+        bl *= scaling;
+
+        if(isSmoothed)
+            setPowers(smoothers[0].update(fr), smoothers[1].update(fl), smoothers[2].update(br), smoothers[3].update(bl));
+        else
+            setPowers(fr, fl, br, bl);
     }
 
     /**
@@ -104,8 +124,10 @@ public class DriveTrain extends Subsystem {
      * @param x the horizontal speed of the robot, derived from input
      * @param y the vertical speed of the robot, derived from input
      * @param rot the turn speed of the robot, derived from input
+     * @param isSmoothed whether or not exponential smoothing is enabled
+     * @param scaling scaling factor given to all four motor speeds (1.0 is raw speed)
      */
-    public void driveFieldCentric(double x, double y, double rot) {
+    public void driveFieldCentric(double x, double y, double rot, boolean isSmoothed, double scaling) {
         x = Range.clip(x, -1, 1);
         y = Range.clip(y, -1, 1);
         rot = Range.clip(rot, -1, 1);
@@ -115,12 +137,20 @@ public class DriveTrain extends Subsystem {
 
         double theta = input.angle();
         double magnitude = input.magnitude();
-        setPowers(
-                magnitude * Math.sin(theta - Math.PI / 4) - rot,
-                magnitude * Math.sin(theta + Math.PI / 4) + rot,
-                magnitude * Math.sin(theta + Math.PI / 4) - rot,
-                magnitude * Math.sin(theta - Math.PI / 4) + rot
-        );
+        double fr = magnitude * Math.sin(theta - Math.PI / 4) - rot;
+        double fl = magnitude * Math.sin(theta + Math.PI / 4) + rot;
+        double br = magnitude * Math.sin(theta + Math.PI / 4) - rot;
+        double bl = magnitude * Math.sin(theta - Math.PI / 4) + rot;
+
+        fr *= scaling;
+        fl *= scaling;
+        br *= scaling;
+        bl *= scaling;
+
+        if(isSmoothed)
+            setPowers(smoothers[0].update(fr), smoothers[1].update(fl), smoothers[2].update(br), smoothers[3].update(bl));
+        else
+            setPowers(fr, fl, br, bl);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -157,6 +187,11 @@ public class DriveTrain extends Subsystem {
         return isBusy;
     }
 
+    public void resetSmoothers() {
+        for(Smoother smoother : smoothers)
+            smoother.reset();
+    }
+
 
     //----------------------------------------------------------------------------------------------
     // Telemetry
@@ -166,7 +201,6 @@ public class DriveTrain extends Subsystem {
     public Map<String, Object> updateTelemetry() {
         Map<String, Object> telemetryData = new HashMap<>();
 
-        telemetryData.put("heading", globalAngle);
         for(int i = 0; i < motors.length; i++) {
             telemetryData.put(MOTOR_NAMES[i] + " encoder counts", motors[i].getCurrentPosition());
             telemetryData.put(MOTOR_NAMES[i] + " power", motors[i].getPower());

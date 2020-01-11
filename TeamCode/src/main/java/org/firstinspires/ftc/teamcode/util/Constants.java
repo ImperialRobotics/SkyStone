@@ -11,12 +11,6 @@ public class Constants {
     // Drive Constants
     //----------------------------------------------------------------------------------------------
 
-    public static double INTAKE_SPEED = 1.0;
-    public static double V_SLIDE_SPEED = 1.0;
-    public static double H_SLIDE_SPEED = 0.5;
-    public static double GRIPPER_INCREMENT = 0.01;
-    public static double HOOK_INCREMENT = 0.01;
-
     public static double DRIVE_SPEED = 0.75;
     public static double STRAFE_SPEED = 0.75;
     public static double ROTATE_SPEED = 0.4;
@@ -31,18 +25,28 @@ public class Constants {
 
     public static int SLEEP_TIME = 0;
 
-
-
     public static double EPSILON = 0.001;
 
     //----------------------------------------------------------------------------------------------
     // Tele-Op Constants
     //----------------------------------------------------------------------------------------------
 
+    public static double V_SLIDE_SPEED = 1.0;
+    public static double H_SLIDE_SPEED = 0.5;
+    public static double HOOK_INCREMENT = 0.01;
+    public static double GRIPPER_INCREMENT = 0.01;
+
     public static double TRIGGER_DEADZONE = 0.2;
     public static double JOYSTICK_DEADZONE = 0.05;
+
     public static double SCALING = 1.145;
+
     public static int V_SLIDE_MAX_TICKS = 3125;
+
+    public static double SMOOTHING_FACTOR = 0.97;
+
+//    public static double GRIPPER_GRIP_POSITION = 0.0;
+//    public static double GRIPPER_RESTING_POSITION = 0.3;
 
     //----------------------------------------------------------------------------------------------
     // Physical Constants

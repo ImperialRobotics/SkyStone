@@ -14,13 +14,11 @@ import java.util.Map;
 public class Robot {
     public List<Subsystem> subsystems;
     public DriveTrain driveTrain;
-//    public Intake intake;
     public LinearSlide linearSlide;
-//    public Hook hook;
+    public Hook hook;
     public FtcDashboard dashboard;
 
     private boolean usingDashboard;
-    private Intake.IntakeState intakeState;
     private OpMode opMode;
 
     //----------------------------------------------------------------------------------------------
@@ -32,12 +30,10 @@ public class Robot {
 
         //initialize subsystems
         driveTrain = new DriveTrain(opMode, autonomous);
-//        intake = new Intake(opMode, autonomous);
         linearSlide = new LinearSlide(opMode, autonomous);
-//        hook = new Hook(opMode, autonomous);
-        subsystems = Arrays.asList(driveTrain, linearSlide);
+        hook = new Hook(opMode, autonomous);
+        subsystems = Arrays.asList(driveTrain, linearSlide, hook);
 
-        intakeState = Intake.IntakeState.INTAKE;
 
         this.usingDashboard = usingDashboard;
         if(usingDashboard)

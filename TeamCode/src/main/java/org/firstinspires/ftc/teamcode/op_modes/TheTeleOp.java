@@ -14,9 +14,8 @@ import static org.firstinspires.ftc.teamcode.util.Constants.*;
  * left_stick_y - vertical movement
  * right_stick_x - rotate
  *
- *  y - increment state of intake (INTAKE, SPIT, DISABLED)
- *  x - loosen gripper
- *  b - tighten gripper
+ *  b - loosen gripper
+ *  x - tighten gripper
  *  dpad_up - retract hook
  *  dpad_down - lower hook
  *  right_bumper - extend vertical linear slide
@@ -24,7 +23,8 @@ import static org.firstinspires.ftc.teamcode.util.Constants.*;
  *  right_trigger - extend horizontal linear slide
  *  left_trigger - retract horizontal linear slide
  *
- *  a - toggle robot centric
+ *  y - toggle smoothing
+ *  a - increase scaling
  *  guide - emergency stop
  */
 
@@ -34,7 +34,8 @@ public class TheTeleOp extends LinearOpMode {
     private Robot robot;
     private boolean isRobotCentric;
     private StickyGamepad stickyGamepad1;
-    private boolean isStopped;
+    private boolean isStopped, isSmoothed, isGripped;
+    private double scaling;
 
     @Override
     public void runOpMode() {
@@ -43,18 +44,22 @@ public class TheTeleOp extends LinearOpMode {
         stickyGamepad1 = new StickyGamepad(gamepad1);
         isRobotCentric = true;
         isStopped = false;
+        isSmoothed = false;
+        isGripped = false;
+        scaling = 1.0;
 
         waitForStart();
         while(opModeIsActive() && !isStopped) {
-            if(isRobotCentric)
-                robot.driveTrain.driveRobotCentric(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
-            else
-                robot.driveTrain.driveFieldCentric(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-//            if(stickyGamepad1.y)
-//                robot.intake.incrementState();
-            if(stickyGamepad1.a)
-                isRobotCentric = !isRobotCentric;
+
+            if(stickyGamepad1.y) {
+                isSmoothed = !isSmoothed;
+                robot.driveTrain.resetSmoothers();
+            }
+            if(stickyGamepad1.a) {
+                scaling = (scaling == 1.0 ? 0.25 : scaling + 0.25);
+                robot.driveTrain.resetSmoothers();
+            }
 
             if(gamepad1.right_bumper && robot.linearSlide.motors[0].getCurrentPosition() <= V_SLIDE_MAX_TICKS)
                 robot.linearSlide.motors[0].setPower(V_SLIDE_SPEED);
@@ -70,20 +75,35 @@ public class TheTeleOp extends LinearOpMode {
             else
                 robot.linearSlide.motors[1].setPower(0.0);
 
+            if(gamepad1.dpad_up)
+                robot.hook.servos[0].setPosition(robot.hook.servos[0].getPosition() - HOOK_INCREMENT);
+            else if(gamepad1.dpad_down)
+                robot.hook.servos[0].setPosition(robot.hook.servos[0].getPosition() + HOOK_INCREMENT);
+
+            if(gamepad1.guide)
+                isStopped = true;
+
+            if(isRobotCentric)
+                robot.driveTrain.driveRobotCentric(
+                        MathUtil.deadZone(gamepad1.left_stick_x, JOYSTICK_DEADZONE),
+                        MathUtil.deadZone(-gamepad1.left_stick_y, JOYSTICK_DEADZONE),
+                        MathUtil.deadZone(gamepad1.right_stick_x, JOYSTICK_DEADZONE),
+                        isSmoothed, scaling);
+            else
+                robot.driveTrain.driveFieldCentric(
+                        MathUtil.deadZone(gamepad1.left_stick_x, JOYSTICK_DEADZONE),
+                        MathUtil.deadZone(-gamepad1.left_stick_y, JOYSTICK_DEADZONE),
+                        MathUtil.deadZone(gamepad1.right_stick_x, JOYSTICK_DEADZONE),
+                        isSmoothed, scaling);
+
             if(gamepad1.b)
                 robot.linearSlide.servos[0].setPosition(robot.linearSlide.servos[0].getPosition() + GRIPPER_INCREMENT);
             else if(gamepad1.x)
                 robot.linearSlide.servos[0].setPosition(robot.linearSlide.servos[0].getPosition() - GRIPPER_INCREMENT);
 
-//            if(gamepad1.dpad_up)
-//                robot.hook.servos[0].setPosition(robot.hook.servos[0].getPosition() - HOOK_INCREMENT);
-//            else if(gamepad1.dpad_down)
-//                robot.hook.servos[0].setPosition(robot.hook.servos[0].getPosition() + HOOK_INCREMENT);
-
-            if(gamepad1.guide)
-                isStopped = true;
-
-//            robot.intake.handleState();
+            telemetry.addData("isSmoothed", isStopped);
+            telemetry.addData("isGripped", isGripped);
+            telemetry.addData("scaling", scaling);
             robot.updateTelemetry();
             stickyGamepad1.update();
         }
